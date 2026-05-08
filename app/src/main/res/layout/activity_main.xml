@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#111111">
+
+    <TextView
+        android:id="@+id/statusBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="8dp"
+        android:textColor="#aaaaaa"
+        android:textSize="12sp"
+        android:fontFamily="monospace"
+        android:background="#1a1a1a"
+        android:text="Loading Strudel..." />
+
+    <WebView
+        android:id="@+id/webView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        android:background="#1a1a1a">
+
+        <EditText
+            android:id="@+id/textInput"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Describe the music you want..."
+            android:hintTextColor="#666666"
+            android:textColor="#eeeeee"
+            android:textSize="14sp"
+            android:fontFamily="monospace"
+            android:background="#2a2a2a"
+            android:padding="10dp"
+            android:inputType="text"
+            android:imeOptions="actionSend"
+            android:maxLines="2" />
+
+        <Button
+            android:id="@+id/sendBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="Send"
+            android:backgroundTint="#7c6af7"
+            android:textColor="#ffffff"
+            android:fontFamily="monospace" />
+
+    </LinearLayout>
+
+</LinearLayout>
