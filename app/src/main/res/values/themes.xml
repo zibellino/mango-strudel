@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.StrudelVoice" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <style name="Theme.MangoStrudel" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="colorPrimary">#7c6af7</item>
         <item name="colorPrimaryVariant">#5a4ad1</item>
         <item name="colorOnPrimary">#ffffff</item>

@@ -1,4 +1,4 @@
-# StrudelVoice
+# MangoStrudel
 
 Voice/text-driven live coding with Strudel + Gemini, as an Android app.
 
@@ -7,7 +7,7 @@ Voice/text-driven live coding with Strudel + Gemini, as an Android app.
 1. Create a new **public or private** GitHub repo
 2. Push this folder to it
 3. GitHub Actions will automatically build the APK
-4. Download the APK from the **Actions** tab → latest run → **StrudelVoice-debug** artifact
+4. Download the APK from the **Actions** tab → latest run → **MangoStrudel-debug** artifact
 5. Install on your phone (enable "Install from unknown sources" if needed)
 
 ## On first launch
