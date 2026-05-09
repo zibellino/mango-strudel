@@ -28,7 +28,7 @@ jobs:
           pnpm --filter @strudel/repl build
           mkdir -p $GITHUB_WORKSPACE/app/src/main/assets/strudel
           cp -r packages/repl/dist/. $GITHUB_WORKSPACE/app/src/main/assets/strudel/
-          head -5 $GITHUB_WORKSPACE/app/src/main/assets/strudel/index.js
+          cat $GITHUB_WORKSPACE/app/src/main/assets/strudel/index.js
           echo "Strudel built"
 
       - name: Set up JDK 17
