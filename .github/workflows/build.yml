@@ -24,9 +24,9 @@ jobs:
           cd strudel
           npm install -g pnpm
           pnpm install --frozen-lockfile=false
-          pnpm run build
+          pnpm --filter @strudel/repl build
           mkdir -p $GITHUB_WORKSPACE/app/src/main/assets/strudel
-          cp -r website/dist/. $GITHUB_WORKSPACE/app/src/main/assets/strudel/
+          cp -r packages/repl/dist/. $GITHUB_WORKSPACE/app/src/main/assets/strudel/
           find $GITHUB_WORKSPACE/app/src/main/assets/strudel -name "*.html" | sort
           echo "Strudel built"
 
