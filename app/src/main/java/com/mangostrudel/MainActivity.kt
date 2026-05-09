@@ -109,7 +109,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun loadStrudel() {
         // Load bundled Strudel from assets
-        webView.loadUrl("file:///android_asset/strudel/REPL/index.html")
+        webView.loadUrl("file:///android_asset/strudel/index.html#REPL")
     }
 
     private fun injectCode(code: String) {
