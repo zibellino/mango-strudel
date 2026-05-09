@@ -35,7 +35,6 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:hint="Describe the music you want..."
-            android:hintTextColor="#666666"
             android:textColor="#eeeeee"
             android:textSize="14sp"
             android:fontFamily="monospace"

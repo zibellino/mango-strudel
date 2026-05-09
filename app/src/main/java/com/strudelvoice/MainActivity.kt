@@ -1,6 +1,8 @@
 package com.strudelvoice
 
 import android.annotation.SuppressLint
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
@@ -187,9 +189,11 @@ class MainActivity : AppCompatActivity() {
 
         return try {
             val client = okhttp3.OkHttpClient()
+            val mediaType = "application/json".toMediaType()
+            val requestBody = body.toRequestBody(mediaType)
             val request = okhttp3.Request.Builder()
                 .url(url)
-                .post(okhttp3.RequestBody.create(okhttp3.MediaType.parse("application/json"), body))
+                .post(requestBody)
                 .build()
             val response = client.newCall(request).execute()
             val json = response.body()?.string() ?: return null
