@@ -25,10 +25,9 @@ jobs:
           npm install -g pnpm
           pnpm install --frozen-lockfile=false
           pnpm run build
-          pnpm --filter @strudel/repl build
           mkdir -p $GITHUB_WORKSPACE/app/src/main/assets/strudel
-          cp -r packages/repl/dist/. $GITHUB_WORKSPACE/app/src/main/assets/strudel/
-          cat $GITHUB_WORKSPACE/app/src/main/assets/strudel/index.js
+          cp -r website/dist/. $GITHUB_WORKSPACE/app/src/main/assets/strudel/
+          cat $GITHUB_WORKSPACE/app/src/main/assets/strudel/bakery/index.html
           echo "Strudel built"
 
       - name: Set up JDK 17
