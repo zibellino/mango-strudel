@@ -27,6 +27,7 @@ jobs:
           pnpm run build
           mkdir -p $GITHUB_WORKSPACE/app/src/main/assets/strudel
           cp -r website/dist/. $GITHUB_WORKSPACE/app/src/main/assets/strudel/
+          find $GITHUB_WORKSPACE/app/src/main/assets/strudel -name "index.html" | head -20
           echo "Strudel built"
 
       - name: Set up JDK 17
