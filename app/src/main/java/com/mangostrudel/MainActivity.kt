@@ -118,7 +118,7 @@ class MainActivity : AppCompatActivity() {
             server = AssetServer(assets, 8888)
             server?.start()
         } catch (e: Exception) {}
-        webView.loadUrl("http://localhost:8888/index.html")
+        webView.loadUrl("http://localhost:8888/")
     }
 
     private fun injectCode(code: String) {
