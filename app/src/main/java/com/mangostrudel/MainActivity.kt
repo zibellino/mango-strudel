@@ -117,6 +117,11 @@ class MainActivity : AppCompatActivity() {
                     if (typeof strudelMirror !== 'undefined') {
                         strudelMirror.setCode(`$escaped`);
                         strudelMirror.evaluate();
+                        // Switch to editor view and trigger play
+                        const playBtn = document.querySelector('button[title="play"], button[aria-label="play"]');
+                        if (playBtn) playBtn.click();
+                        const editorTab = document.querySelector('[data-panel="code"], .editor-tab, button[title="code"]');
+                    if (editorTab) editorTab.click();
                         AndroidBridge.onSuccess();
                     } else {
                         AndroidBridge.onError('Strudel not ready');
