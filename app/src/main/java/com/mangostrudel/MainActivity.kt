@@ -28,17 +28,51 @@ class MainActivity : AppCompatActivity() {
         Return ONLY raw runnable Strudel code. No explanation, no markdown, no backticks.
         Do NOT add .play() at the end.
 
-        Key Strudel API:
-        - Drums: sound("bd sd hh oh cp").bank("RolandTR909")
-        - Notes: note("c3 e3 g3").sound("piano")
-        - Stack: stack(sound("bd sd"), note("c3 e3").sound("piano"))
-        - Effects: .lpf(800) .delay(0.5) .reverb(2) .gain(0.8)
-        - Rhythm: .fast(2) .slow(2) .every(4, x=>x.fast(2))
-        - Scales: note("0 2 4 5 7").scale("C4:minor")
-        - Euclidean: sound("bd").euclid(3,8)
+        WORKING EXAMPLES (use these as reference):
 
-        If current code is provided, modify it. Otherwise create fresh.
-        Always return a single complete runnable Strudel expression.
+        Basic beat:
+        s("bd sd bd sd").bank("RolandTR909")
+
+        Beat with hats:
+        stack(
+          s("bd sd bd sd").bank("RolandTR909"),
+          s("hh*8").gain(0.3).bank("RolandTR909")
+        )
+
+        Beat with bass:
+        stack(
+          s("bd sd bd sd").bank("RolandTR909"),
+          s("hh*8").gain(0.3).bank("RolandTR909"),
+          note("c2 ~ c2 ~ e2 ~ g1 ~").s("sawtooth").lpf(500).lpq(3)
+        )
+
+        Techno:
+        setcpm(130)
+        stack(
+          s("bd*4").gain(0.9),
+          s("~ cp ~ cp").room(0.2),
+          s("hh*16").gain(0.4).pan(sine.range(-0.5, 0.5)),
+          note("c2 c2 eb2 c2").s("sawtooth").cutoff(800)
+        )
+
+        Melody:
+        note("c4 e4 g4 b4 a4 f4 d4 e4").s("piano").slow(2)
+
+        Minor scale melody:
+        note("0 2 3 5 7 8 10 12").scale("c4:minor").s("piano").slow(2)
+
+        Acid bass:
+        note("[<g1 f1>/8](<3 5>,8)").s("sawtooth").lpf(sine.range(400,800).slow(16)).lpq(8)
+
+        KEY RULES:
+        - Use s() for samples/drums, note() for pitched sounds
+        - .bank("RolandTR909") for drum sounds
+        - stack() to layer multiple patterns
+        - Mini notation: * repeats, ~ is rest, <> alternates, [] groups, () euclidean
+        - setcpm(bpm) sets tempo
+        - Effects: .room() .gain() .lpf() .delay() .pan() .cutoff()
+        - Always return a single complete expression, no variable declarations unless using stack()
+        - If modifying existing code, return the complete modified code
     """.trimIndent()
 
     @SuppressLint("SetJavaScriptEnabled")
