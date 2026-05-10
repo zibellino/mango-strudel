@@ -110,6 +110,15 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onPageFinished(view: WebView, url: String) {
+        // Auto-dismiss welcome panel
+        webView.evaluateJavascript(
+            "document.querySelector('.close-button, button[title=\"close\"], [aria-label=\"close\"]')?.click()",
+            null
+        )
+        runOnUiThread { setStatus("Ready — type a musical command") }
+    }
+
     @SuppressLint("SetJavaScriptEnabled")
     private fun setupWebView() {
         webView.settings.apply {
