@@ -18,17 +18,17 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Clone and build Strudel REPL
-        run: |
-          git clone https://codeberg.org/uzu/strudel.git --depth=1
-          cd strudel
-          npm install -g pnpm
-          pnpm install --frozen-lockfile=false
-          pnpm run build
-          mkdir -p $GITHUB_WORKSPACE/app/src/main/assets/strudel
-          cp -r website/dist/. $GITHUB_WORKSPACE/app/src/main/assets/strudel/
-          grep -rl "strudelMirror\|CodeMirror\|codemirror" $GITHUB_WORKSPACE/app/src/main/assets/strudel/*.html 2>/dev/null | head -5
-          echo "Strudel built"
+#      - name: Clone and build Strudel REPL
+#        run: |
+#          git clone https://codeberg.org/uzu/strudel.git --depth=1
+#          cd strudel
+#          npm install -g pnpm
+#          pnpm install --frozen-lockfile=false
+#          pnpm run build
+#          mkdir -p $GITHUB_WORKSPACE/app/src/main/assets/strudel
+#          cp -r website/dist/. $GITHUB_WORKSPACE/app/src/main/assets/strudel/
+#          grep -rl "strudelMirror\|CodeMirror\|codemirror" $GITHUB_WORKSPACE/app/src/main/assets/strudel/*.html 2>/dev/null | head -5
+#          echo "Strudel built"
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
