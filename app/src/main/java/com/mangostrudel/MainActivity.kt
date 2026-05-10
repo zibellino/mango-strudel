@@ -110,21 +110,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    override fun onPageFinished(view: WebView, url: String) {
-        // Auto-close the bottom info panel by clicking the × tab
-        webView.evaluateJavascript("""
-            setTimeout(function() {
-                var tabs = document.querySelectorAll('[role="tab"], button');
-                for (var t of tabs) {
-                    if (t.textContent.trim() === '×' || t.innerHTML.includes('×')) {
-                        t.click(); break;
-                    }
-                }
-            }, 2000);
-        """.trimIndent(), null)
-        runOnUiThread { setStatus("Ready — type a musical command") }
-    }
-
     @SuppressLint("SetJavaScriptEnabled")
     private fun setupWebView() {
         webView.settings.apply {
@@ -147,8 +132,18 @@ class MainActivity : AppCompatActivity() {
 
         webView.webViewClient = object : WebViewClient() {
             override fun onPageFinished(view: WebView, url: String) {
-                runOnUiThread { setStatus("Ready — type a musical command") }
-            }
+            // Auto-close the bottom info panel by clicking the × tab
+            webView.evaluateJavascript("""
+                setTimeout(function() {
+                    var tabs = document.querySelectorAll('[role="tab"], button');
+                    for (var t of tabs) {
+                        if (t.textContent.trim() === '×' || t.innerHTML.includes('×')) {
+                            t.click(); break;
+                        }
+                    }
+                }, 2000);
+            """.trimIndent(), null)
+            runOnUiThread { setStatus("Ready — type a musical command") }
         }
 
         webView.addJavascriptInterface(StrudelBridge(), "AndroidBridge")
