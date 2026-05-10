@@ -111,11 +111,17 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onPageFinished(view: WebView, url: String) {
-        // Auto-dismiss welcome panel
-        webView.evaluateJavascript(
-            "document.querySelector('.close-button, button[title=\"close\"], [aria-label=\"close\"]')?.click()",
-            null
-        )
+        // Auto-close the bottom info panel by clicking the × tab
+        webView.evaluateJavascript("""
+            setTimeout(function() {
+                var tabs = document.querySelectorAll('[role="tab"], button');
+                for (var t of tabs) {
+                    if (t.textContent.trim() === '×' || t.innerHTML.includes('×')) {
+                        t.click(); break;
+                    }
+                }
+            }, 2000);
+        """.trimIndent(), null)
         runOnUiThread { setStatus("Ready — type a musical command") }
     }
 
