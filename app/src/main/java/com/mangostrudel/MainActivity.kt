@@ -188,6 +188,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun processCommand(userText: String) {
+        val lower = userText.trim().lowercase()
+        if (lower == "play" || lower == "start") {
+            webView.evaluateJavascript("document.querySelector('button[title=\"play\"]')?.click()", null)
+            setStatus("▶ Playing")
+            return
+        }
+        if (lower == "stop" || lower == "hush") {
+            webView.evaluateJavascript("document.querySelector('button[title=\"stop\"]')?.click()", null)
+            setStatus("⏹ Stopped")
+            return
+        }
+
         setStatus("Thinking...")
         sendBtn.isEnabled = false
 
