@@ -28,7 +28,7 @@ class MainActivity : AppCompatActivity() {
         Return ONLY raw runnable Strudel code. No explanation, no markdown, no backticks.
         Do NOT add .play() at the end.
 
-        WORKING EXAMPLES (use these as reference):
+        WORKING EXAMPLES:
 
         Basic beat:
         s("bd sd bd sd").bank("RolandTR909")
@@ -39,14 +39,14 @@ class MainActivity : AppCompatActivity() {
           s("hh*8").gain(0.3).bank("RolandTR909")
         )
 
-        Beat with bass:
+        Full loop with bass:
         stack(
           s("bd sd bd sd").bank("RolandTR909"),
           s("hh*8").gain(0.3).bank("RolandTR909"),
           note("c2 ~ c2 ~ e2 ~ g1 ~").s("sawtooth").lpf(500).lpq(3)
         )
 
-        Techno:
+        Techno at 130 BPM:
         setcpm(130)
         stack(
           s("bd*4").gain(0.9),
@@ -65,14 +65,14 @@ class MainActivity : AppCompatActivity() {
         note("[<g1 f1>/8](<3 5>,8)").s("sawtooth").lpf(sine.range(400,800).slow(16)).lpq(8)
 
         KEY RULES:
-        - Use s() for samples/drums, note() for pitched sounds
-        - .bank("RolandTR909") for drum sounds
-        - stack() to layer multiple patterns
-        - Mini notation: * repeats, ~ is rest, <> alternates, [] groups, () euclidean
-        - setcpm(bpm) sets tempo
-        - Effects: .room() .gain() .lpf() .delay() .pan() .cutoff()
-        - Always return a single complete expression, no variable declarations unless using stack()
-        - If modifying existing code, return the complete modified code
+        - Use s() for drums/samples, note() for pitched sounds
+        - .bank("RolandTR909") for TR909 drum sounds (bd=kick, sd=snare, hh=hihat, cp=clap, oh=open hat)
+        - stack() to layer multiple patterns simultaneously
+        - Mini notation: * repeats, ~ is rest, <> alternates cycles, [] groups, () euclidean rhythm
+        - setcpm(bpm) sets tempo in BPM
+        - Effects: .room() .gain() .lpf() .delay() .pan() .cutoff() .reverb()
+        - Always return a single complete runnable expression
+        - If modifying existing code, return the complete modified version
     """.trimIndent()
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -132,18 +132,18 @@ class MainActivity : AppCompatActivity() {
 
         webView.webViewClient = object : WebViewClient() {
             override fun onPageFinished(view: WebView, url: String) {
-            // Auto-close the bottom info panel by clicking the × tab
-            webView.evaluateJavascript("""
-                setTimeout(function() {
-                    var tabs = document.querySelectorAll('[role="tab"], button');
-                    for (var t of tabs) {
-                        if (t.textContent.trim() === '×' || t.innerHTML.includes('×')) {
-                            t.click(); break;
+                webView.evaluateJavascript("""
+                    setTimeout(function() {
+                        var tabs = document.querySelectorAll('[role="tab"], button');
+                        for (var t of tabs) {
+                            if (t.textContent.trim() === '\u00d7' || t.innerHTML.includes('\u00d7')) {
+                                t.click(); break;
+                            }
                         }
-                    }
-                }, 2000);
-            """.trimIndent(), null)
-            runOnUiThread { setStatus("Ready — type a musical command") }
+                    }, 2000);
+                """.trimIndent(), null)
+                runOnUiThread { setStatus("Ready — type a musical command") }
+            }
         }
 
         webView.addJavascriptInterface(StrudelBridge(), "AndroidBridge")
@@ -161,11 +161,6 @@ class MainActivity : AppCompatActivity() {
                     if (typeof strudelMirror !== 'undefined') {
                         strudelMirror.setCode(`$escaped`);
                         strudelMirror.evaluate();
-                        // Switch to editor view and trigger play
-                        const playBtn = document.querySelector('button[title="play"], button[aria-label="play"]');
-                        if (playBtn) playBtn.click();
-                        const editorTab = document.querySelector('[data-panel="code"], .editor-tab, button[title="code"]');
-                    if (editorTab) editorTab.click();
                         AndroidBridge.onSuccess();
                     } else {
                         AndroidBridge.onError('Strudel not ready');
@@ -200,12 +195,12 @@ class MainActivity : AppCompatActivity() {
     private fun processCommand(userText: String) {
         val lower = userText.trim().lowercase()
         if (lower == "play" || lower == "start") {
-            webView.evaluateJavascript("document.querySelector('button[title=\"play\"]')?.click()", null)
+            webView.evaluateJavascript("strudelMirror?.start?.()", null)
             setStatus("▶ Playing")
             return
         }
-        if (lower == "stop" || lower == "hush") {
-            webView.evaluateJavascript("document.querySelector('button[title=\"stop\"]')?.click()", null)
+        if (lower == "stop" || lower == "hush" || lower == "pause") {
+            webView.evaluateJavascript("strudelMirror?.stop?.()", null)
             setStatus("⏹ Stopped")
             return
         }
