@@ -21,7 +21,6 @@ class MainActivity : AppCompatActivity() {
     private var apiKey: String = ""
     private var currentCode: String = ""
     private val geminiModel = "gemini-3.1-flash-lite-preview"
-    private var server: AssetServer? = null
 
     private val systemPrompt = """
         You are a live coding assistant for Strudel (browser port of TidalCycles).
@@ -77,11 +76,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        server?.stop()
-    }
-
     @SuppressLint("SetJavaScriptEnabled")
     private fun setupWebView() {
         webView.settings.apply {
@@ -95,7 +89,6 @@ class MainActivity : AppCompatActivity() {
 
         webView.webChromeClient = object : WebChromeClient() {
             override fun onConsoleMessage(msg: ConsoleMessage): Boolean {
-                // Forward Strudel errors back to status bar
                 if (msg.messageLevel() == ConsoleMessage.MessageLevel.ERROR) {
                     runOnUiThread { handleStrudelError(msg.message()) }
                 }
@@ -109,16 +102,11 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // Bridge for Strudel to call back into Android
         webView.addJavascriptInterface(StrudelBridge(), "AndroidBridge")
     }
 
     private fun loadStrudel() {
-        try {
-            server = AssetServer(assets, 8888)
-            server?.start()
-        } catch (e: Exception) {}
-        webView.loadUrl("http://localhost:8888/")
+        webView.loadUrl("https://strudel.cc/")
     }
 
     private fun injectCode(code: String) {
@@ -143,7 +131,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun handleStrudelError(error: String) {
         setStatus("Error — fixing...")
-        // Send error back to Gemini for self-correction
         Thread {
             val fixed = callGemini(
                 "This Strudel code has an error:\n$currentCode\n\nError: $error\n\nFix it. Return ONLY corrected Strudel code.",
@@ -228,7 +215,6 @@ class MainActivity : AppCompatActivity() {
                 .getString("text")
                 .trim()
 
-            // Strip markdown fences if present
             code = code.replace(Regex("^```[\\w]*\\n?", RegexOption.MULTILINE), "")
                 .replace(Regex("```$", RegexOption.MULTILINE), "")
                 .trim()
@@ -284,30 +270,6 @@ class MainActivity : AppCompatActivity() {
         @JavascriptInterface
         fun onError(msg: String) {
             runOnUiThread { handleStrudelError(msg) }
-        }
-    }
-
-    inner class AssetServer(
-        private val assetManager: android.content.res.AssetManager,
-        port: Int
-    ) : fi.iki.elonen.NanoHTTPD(port) {
-        override fun serve(session: IHTTPSession): Response {
-            var path = session.uri.trimStart('/')
-            if (path.isEmpty()) path = "index.html"
-            return try {
-                val stream = assetManager.open("strudel/$path")
-                val mime = when {
-                    path.endsWith(".js") -> "application/javascript"
-                    path.endsWith(".css") -> "text/css"
-                    path.endsWith(".html") -> "text/html"
-                    path.endsWith(".wasm") -> "application/wasm"
-                    path.endsWith(".json") -> "application/json"
-                    else -> "application/octet-stream"
-                }
-                newFixedLengthResponse(Response.Status.OK, mime, stream, stream.available().toLong())
-            } catch (e: Exception) {
-                newFixedLengthResponse(Response.Status.NOT_FOUND, "text/plain", "Not found: $path")
-            }
         }
     }
 }
