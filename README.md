@@ -20,7 +20,7 @@ Subsequent commands modify the running pattern live.
 
 ## Architecture
 
-- **Android WebView** loads a bundled build of the Strudel REPL from assets
+- **Android WebView** loads [strudel.cc](https://strudel.cc) directly
 - **Gemini API** (gemini-3.1-flash-lite-preview) translates natural language to Strudel code
 - **`strudelMirror.setCode()` + `strudelMirror.evaluate()`** hot-reloads the pattern
 - Self-correcting: if Strudel throws an error, the code is sent back to Gemini for fixing
