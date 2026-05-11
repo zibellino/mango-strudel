@@ -43,4 +43,15 @@ jobs:
         with:
           name: MangoStrudel-debug
           path: app/build/outputs/apk/debug/app-debug.apk
-          retention-days: 30
+          retention-days: 1
+
+      - name: Rename and upload APK to release
+        if: github.event_name == 'release'
+        run: mv app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/MangoStrudel-${{ github.event.release.tag_name }}.apk
+
+      - name: Attach APK to release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: app/build/outputs/apk/debug/MangoStrudel-${{ github.event.release.tag_name }}.apk
+          
