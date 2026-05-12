@@ -1,6 +1,6 @@
 # MangoStrudel
 
-Voice/text-driven live coding with Strudel + Gemini, as an Android app.
+Text-driven live coding with Strudel + Gemini, as an Android app.
 
 ## Setup
 
