@@ -1,26 +1,41 @@
 package com.mangostrudel
 
 import android.annotation.SuppressLint
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.RequestBody.Companion.toRequestBody
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
 import android.os.Bundle
+import android.speech.RecognitionListener
+import android.speech.RecognizerIntent
+import android.speech.SpeechRecognizer
 import android.webkit.*
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var webView: WebView
     private lateinit var textInput: EditText
     private lateinit var sendBtn: Button
+    private lateinit var micBtn: Button
     private lateinit var statusBar: TextView
     private lateinit var prefs: SharedPreferences
     private var apiKey: String = ""
     private var currentCode: String = ""
     private val geminiModel = "gemini-3.1-flash-lite-preview"
+
+    private var speechRecognizer: SpeechRecognizer? = null
+    private var isListening = false
+
+    companion object {
+        private const val REQUEST_RECORD_AUDIO = 101
+    }
 
     private val systemPrompt = """
         You are a live coding assistant for Strudel (browser port of TidalCycles).
@@ -86,15 +101,25 @@ class MainActivity : AppCompatActivity() {
         webView = findViewById(R.id.webView)
         textInput = findViewById(R.id.textInput)
         sendBtn = findViewById(R.id.sendBtn)
+        micBtn = findViewById(R.id.micBtn)
         statusBar = findViewById(R.id.statusBar)
 
         setupWebView()
+        setupSpeechRecognizer()
 
         sendBtn.setOnClickListener {
             val text = textInput.text.toString().trim()
             if (text.isNotEmpty()) {
                 textInput.text.clear()
                 processCommand(text)
+            }
+        }
+
+        micBtn.setOnClickListener {
+            if (isListening) {
+                stopListening()
+            } else {
+                startListening()
             }
         }
 
@@ -108,6 +133,113 @@ class MainActivity : AppCompatActivity() {
         } else {
             loadStrudel()
         }
+    }
+
+    private fun setupSpeechRecognizer() {
+        if (!SpeechRecognizer.isRecognitionAvailable(this)) {
+            micBtn.isEnabled = false
+            micBtn.alpha = 0.4f
+            return
+        }
+        speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this).apply {
+            setRecognitionListener(object : RecognitionListener {
+                override fun onReadyForSpeech(params: Bundle?) {
+                    runOnUiThread {
+                        isListening = true
+                        micBtn.backgroundTintList =
+                            android.content.res.ColorStateList.valueOf(0xFFe05050.toInt())
+                        setStatus("🎙 Listening...")
+                    }
+                }
+                override fun onBeginningOfSpeech() {}
+                override fun onRmsChanged(rmsdB: Float) {}
+                override fun onBufferReceived(buffer: ByteArray?) {}
+                override fun onEndOfSpeech() {
+                    runOnUiThread { setStatus("Processing speech...") }
+                }
+                override fun onError(error: Int) {
+                    runOnUiThread {
+                        stopListening()
+                        val msg = when (error) {
+                            SpeechRecognizer.ERROR_NO_MATCH -> "Didn't catch that — try again"
+                            SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "No speech detected"
+                            SpeechRecognizer.ERROR_NETWORK -> "Network error"
+                            else -> "Speech error ($error)"
+                        }
+                        setStatus(msg)
+                    }
+                }
+                override fun onResults(results: Bundle?) {
+                    val matches = results
+                        ?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                    val text = matches?.firstOrNull()
+                    runOnUiThread {
+                        stopListening()
+                        if (!text.isNullOrBlank()) {
+                            textInput.setText(text)
+                            sendBtn.performClick()
+                        } else {
+                            setStatus("Didn't catch that — try again")
+                        }
+                    }
+                }
+                override fun onPartialResults(partialResults: Bundle?) {
+                    val partial = partialResults
+                        ?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                        ?.firstOrNull()
+                    if (!partial.isNullOrBlank()) {
+                        runOnUiThread { textInput.setText(partial) }
+                    }
+                }
+                override fun onEvent(eventType: Int, params: Bundle?) {}
+            })
+        }
+    }
+
+    private fun startListening() {
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(android.Manifest.permission.RECORD_AUDIO),
+                REQUEST_RECORD_AUDIO
+            )
+            return
+        }
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
+            putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
+        }
+        speechRecognizer?.startListening(intent)
+    }
+
+    private fun stopListening() {
+        speechRecognizer?.stopListening()
+        isListening = false
+        micBtn.backgroundTintList =
+            android.content.res.ColorStateList.valueOf(0xFF2a2a2a.toInt())
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQUEST_RECORD_AUDIO &&
+            grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED
+        ) {
+            startListening()
+        } else {
+            setStatus("Microphone permission denied")
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        speechRecognizer?.destroy()
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -142,7 +274,7 @@ class MainActivity : AppCompatActivity() {
                         }
                     }, 2000);
                 """.trimIndent(), null)
-                runOnUiThread { setStatus("Ready — type a musical command") }
+                runOnUiThread { setStatus("Ready — type or speak a musical command") }
             }
         }
 
@@ -207,6 +339,7 @@ class MainActivity : AppCompatActivity() {
 
         setStatus("Thinking...")
         sendBtn.isEnabled = false
+        micBtn.isEnabled = false
 
         val userMsg = if (currentCode.isNotEmpty())
             "Current code:\n$currentCode\n\nInstruction: $userText"
@@ -216,6 +349,7 @@ class MainActivity : AppCompatActivity() {
             val code = callGemini(userMsg, retry = true)
             runOnUiThread {
                 sendBtn.isEnabled = true
+                micBtn.isEnabled = true
                 if (code != null) {
                     currentCode = code
                     setStatus("Applying code...")
