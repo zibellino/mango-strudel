@@ -1,6 +1,6 @@
 # MangoStrudel
 
-Text-driven live coding with Strudel + Gemini, as an Android app.
+Speech/text-driven live coding with Strudel + Gemini, as an Android app.
 
 ## Setup
 
@@ -13,7 +13,7 @@ Enter your Gemini API key when prompted. Get a free one at https://aistudio.goog
 
 ## Usage
 
-Type a musical description and press Send. Strudel will play it.
+Hold the mic icon and speak your instructions, then release it to send, or type them, then press Send. Strudel will play it.
 Subsequent commands modify the running pattern live.
 
 ## Architecture
