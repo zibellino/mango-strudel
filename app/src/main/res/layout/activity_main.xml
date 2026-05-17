@@ -44,6 +44,17 @@
             android:imeOptions="actionSend"
             android:maxLines="2" />
 
+        <ImageButton
+            android:id="@+id/micBtn"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="8dp"
+            android:src="@drawable/ic_mic"
+            android:backgroundTint="#2a2a2a"
+            android:padding="12dp"
+            android:scaleType="fitCenter"
+            android:contentDescription="Hold to speak" />
+
         <Button
             android:id="@+id/sendBtn"
             android:layout_width="wrap_content"
