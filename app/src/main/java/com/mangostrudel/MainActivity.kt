@@ -11,6 +11,7 @@ import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.webkit.*
 import android.widget.*
+import android.widget.ImageButton
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -23,7 +24,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var webView: WebView
     private lateinit var textInput: EditText
     private lateinit var sendBtn: Button
-    private lateinit var micBtn: Button
+    private lateinit var micBtn: ImageButton
     private lateinit var statusBar: TextView
     private lateinit var prefs: SharedPreferences
     private var apiKey: String = ""
@@ -115,11 +116,18 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        micBtn.setOnClickListener {
-            if (isListening) {
-                stopListening()
-            } else {
-                startListening()
+        micBtn.setOnTouchListener { _, event ->
+            when (event.action) {
+                android.view.MotionEvent.ACTION_DOWN -> {
+                    startListening()
+                    true
+                }
+                android.view.MotionEvent.ACTION_UP,
+                android.view.MotionEvent.ACTION_CANCEL -> {
+                    stopListeningAndSend()
+                    true
+                }
+                else -> false
             }
         }
 
@@ -139,8 +147,13 @@ class MainActivity : AppCompatActivity() {
         if (!SpeechRecognizer.isRecognitionAvailable(this)) {
             micBtn.isEnabled = false
             micBtn.alpha = 0.4f
-            return
         }
+        // Recognizer is created fresh each time startListening() is called
+        // to avoid ERROR_CLIENT (5) which occurs when reusing an instance
+    }
+
+    private fun createRecognizer() {
+        speechRecognizer?.destroy()
         speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this).apply {
             setRecognitionListener(object : RecognitionListener {
                 override fun onReadyForSpeech(params: Bundle?) {
@@ -148,7 +161,7 @@ class MainActivity : AppCompatActivity() {
                         isListening = true
                         micBtn.backgroundTintList =
                             android.content.res.ColorStateList.valueOf(0xFFe05050.toInt())
-                        setStatus("🎙 Listening...")
+                        setStatus("🎙 Listening… release to send")
                     }
                 }
                 override fun onBeginningOfSpeech() {}
@@ -159,9 +172,9 @@ class MainActivity : AppCompatActivity() {
                 }
                 override fun onError(error: Int) {
                     runOnUiThread {
-                        stopListening()
+                        resetMicState()
                         val msg = when (error) {
-                            SpeechRecognizer.ERROR_NO_MATCH -> "Didn't catch that — try again"
+                            SpeechRecognizer.ERROR_NO_MATCH -> "Didn't catch that — hold to try again"
                             SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "No speech detected"
                             SpeechRecognizer.ERROR_NETWORK -> "Network error"
                             else -> "Speech error ($error)"
@@ -170,16 +183,16 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
                 override fun onResults(results: Bundle?) {
-                    val matches = results
+                    val text = results
                         ?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
-                    val text = matches?.firstOrNull()
+                        ?.firstOrNull()
                     runOnUiThread {
-                        stopListening()
+                        resetMicState()
                         if (!text.isNullOrBlank()) {
                             textInput.setText(text)
                             sendBtn.performClick()
                         } else {
-                            setStatus("Didn't catch that — try again")
+                            setStatus("Didn't catch that — hold to try again")
                         }
                     }
                 }
@@ -207,6 +220,7 @@ class MainActivity : AppCompatActivity() {
             )
             return
         }
+        createRecognizer()
         val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
             putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
             putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
@@ -215,8 +229,15 @@ class MainActivity : AppCompatActivity() {
         speechRecognizer?.startListening(intent)
     }
 
-    private fun stopListening() {
-        speechRecognizer?.stopListening()
+    // Called on ACTION_UP — stops and lets onResults fire naturally to auto-send
+    private fun stopListeningAndSend() {
+        if (isListening) {
+            speechRecognizer?.stopListening()
+        }
+    }
+
+    // Resets visual state without triggering send (used on error/cancel)
+    private fun resetMicState() {
         isListening = false
         micBtn.backgroundTintList =
             android.content.res.ColorStateList.valueOf(0xFF2a2a2a.toInt())
