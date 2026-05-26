@@ -29,7 +29,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var prefs: SharedPreferences
     private var apiKey: String = ""
     private var currentCode: String = ""
-    private val geminiModel = "gemini-3.1-flash-lite-preview"
+    private var geminiModel = "gemini-2.5-flash-lite"
 
     private var speechRecognizer: SpeechRecognizer? = null
     private var isListening = false
@@ -98,6 +98,7 @@ class MainActivity : AppCompatActivity() {
 
         prefs = getSharedPreferences("mangostrudel", Context.MODE_PRIVATE)
         apiKey = prefs.getString("gemini_key", "") ?: ""
+        geminiModel = prefs.getString("gemini_model", "gemini-2.5-flash-lite") ?: "gemini-2.5-flash-lite"
 
         webView = findViewById(R.id.webView)
         textInput = findViewById(R.id.textInput)
@@ -148,8 +149,6 @@ class MainActivity : AppCompatActivity() {
             micBtn.isEnabled = false
             micBtn.alpha = 0.4f
         }
-        // Recognizer is created fresh each time startListening() is called
-        // to avoid ERROR_CLIENT (5) which occurs when reusing an instance
     }
 
     private fun createRecognizer() {
@@ -229,14 +228,12 @@ class MainActivity : AppCompatActivity() {
         speechRecognizer?.startListening(intent)
     }
 
-    // Called on ACTION_UP — stops and lets onResults fire naturally to auto-send
     private fun stopListeningAndSend() {
         if (isListening) {
             speechRecognizer?.stopListening()
         }
     }
 
-    // Resets visual state without triggering send (used on error/cancel)
     private fun resetMicState() {
         isListening = false
         micBtn.backgroundTintList =
@@ -445,20 +442,48 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun askForApiKey() {
-        val input = EditText(this)
-        input.hint = "AIza..."
-        input.inputType = android.text.InputType.TYPE_CLASS_TEXT or
-                android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
+        val layout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(48, 16, 48, 0)
+        }
+
+        val keyLabel = TextView(this).apply { text = "Gemini API Key" }
+        val keyInput = EditText(this).apply {
+            hint = "AIza..."
+            inputType = android.text.InputType.TYPE_CLASS_TEXT or
+                    android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
+            setText(apiKey)
+        }
+
+        val modelLabel = TextView(this).apply {
+            text = "Model name"
+            setPadding(0, 24, 0, 0)
+        }
+        val modelInput = EditText(this).apply {
+            hint = "gemini-2.5-flash-lite"
+            inputType = android.text.InputType.TYPE_CLASS_TEXT
+            setText(geminiModel)
+        }
+
+        layout.addView(keyLabel)
+        layout.addView(keyInput)
+        layout.addView(modelLabel)
+        layout.addView(modelInput)
 
         AlertDialog.Builder(this)
-            .setTitle("Gemini API Key")
-            .setMessage("Enter your Gemini API key. Get one free at aistudio.google.com")
-            .setView(input)
+            .setTitle("Settings")
+            .setMessage("Get a free API key at aistudio.google.com")
+            .setView(layout)
             .setPositiveButton("Save") { _, _ ->
-                val key = input.text.toString().trim()
+                val key = keyInput.text.toString().trim()
+                val model = modelInput.text.toString().trim()
                 if (key.isNotEmpty()) {
                     apiKey = key
-                    prefs.edit().putString("gemini_key", key).apply()
+                    geminiModel = model.ifEmpty { "gemini-2.5-flash-lite" }
+                    prefs.edit()
+                        .putString("gemini_key", apiKey)
+                        .putString("gemini_model", geminiModel)
+                        .apply()
                     loadStrudel()
                 } else {
                     askForApiKey()
