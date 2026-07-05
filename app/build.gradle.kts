@@ -72,5 +72,5 @@ android {
 dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
-    implementation(libs.okhttp)
+    // implementation(libs.okhttp) // temporarily disabled to bisect the release-build crash
 }
