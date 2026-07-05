@@ -3,6 +3,7 @@ import java.io.FileInputStream
 
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
 }
 
 val appProps = Properties().apply {
@@ -72,5 +73,5 @@ android {
 dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
-    // implementation(libs.okhttp) // temporarily disabled to bisect the release-build crash
+    implementation(libs.okhttp)
 }
